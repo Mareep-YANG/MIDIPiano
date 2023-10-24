@@ -5,6 +5,9 @@
 #include "mmeapi.h"
 #include "cstring"
 
+
+
+
 int selectedMidiDev = 0 ;
 int main() {
     SetConsoleOutputCP(CP_UTF8);
@@ -50,7 +53,7 @@ int main() {
         }
 
         // 帮助
-        if(s == "help"){
+        else if(s == "help"){
            cout <<  "---------------------------" << endl;
            cout << "help -> 打印帮助信息" << endl;
            cout << "select -> 选择MIDI输出设备" << endl;
@@ -59,14 +62,13 @@ int main() {
            cout <<"---------------------------"<<endl;
         }
         // 开始演奏
-        if(s == "start"){
-
+        else if(s == "start"){
+            HWAVEOUT hWaveOut;
+            WAVEFORMATEX waveFormat;
+            waveOutOpen(&hWaveOut, selectedMidiDev, &waveFormat, 0, 0, CALLBACK_NULL);
         }
-
-
-
         // 退出程序
-        if (s == "exit"){
+        else if (s == "exit"){
             return 0;
         }
     }
