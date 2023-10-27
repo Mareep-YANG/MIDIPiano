@@ -3,7 +3,7 @@
 #include <iostream>
 #include <windows.h>
 #include "../include/Note.h"
-
+#include "Logger.cpp"
 // 函数声明
 int CommandSelect();
 void CommandHelp();
@@ -12,7 +12,7 @@ void CommandStart(int);
 int selectedMidiDev = 0 ;
 int main() {
     SetConsoleOutputCP(CP_UTF8);
-    std::cout << "欢迎使用MIDI电子琴,键入help以获取帮助"<<std::endl;
+    Logger::info("欢迎使用MIDI电子琴,键入help以获取帮助");
     while(true){
         using namespace std;
         //输入操作符

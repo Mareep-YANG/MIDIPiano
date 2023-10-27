@@ -3,11 +3,12 @@
 //
 #include "iostream"
 #include "windows.h"
-
+#include "../Logger.cpp"
 //全局变量
 HMIDIOUT hMidiOut; // MIDI输出设备句柄
 HHOOK hKeyboardHook; // 键盘钩子
 bool escState = true;// 退出状态
+Logger logger =  Logger();
 //函数声明
 void handleKeyboardEvents(HMIDIOUT  , bool state);
 void initMidiOut(int);
@@ -20,6 +21,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             KBDLLHOOKSTRUCT* kbdStruct = (KBDLLHOOKSTRUCT*)lParam;
             if (kbdStruct->vkCode == VK_ESCAPE) {
                 escState = false;
+                logger.info("123");
                 cout << "<MIDI电子琴>:ESC被按下,将退出演奏模式" << endl;
                 PostQuitMessage(0);
             }

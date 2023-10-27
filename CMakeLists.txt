@@ -9,5 +9,6 @@ add_executable(MIDIPiano src/main.cpp
         src/Commands/selectCommand.cpp
         src/Commands/startCommand.cpp
         src/Commands/helpCommand.cpp
+        src/Logger.cpp
 )
 target_link_libraries(MIDIPiano PRIVATE winmm)
