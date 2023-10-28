@@ -3,7 +3,8 @@
 //
 #include "iostream"
 #include "../Logger.cpp"
-void CommandHelp(){
+
+void CommandHelp() {
     using namespace std;
     Logger::info("---------------------------");
     Logger::info("help -> 打印帮助信息");
