@@ -44,6 +44,10 @@ int main() {
         if (s == "select") {
             selectedMidiDev = commandSelect();
         }
+            // 显示当前键盘映射
+        else if (s == "map") {
+            keyManager.commandMap();
+        }
             // 帮助
         else if (s == "help") {
             commandHelp();
