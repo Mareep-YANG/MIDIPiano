@@ -14,14 +14,14 @@ public:
         }
         else{
             //已经存在
-            Logger::warn("已经存在"+ to_string(MapVirtualKey(key, 2))+"键的映射,请检查音符文件,将覆盖!");
+            Logger::warn("已经存在"+ to_string(MapVirtualKey(key, 0))+"键的映射,请检查音符文件,将覆盖!");
             keyMap[key] = shortName;
         }
 
     }
     string getKeyNote(int key){
-        if (keyMap.find(key) == keyMap.end()){
-            Logger::warn("未找到"+ to_string(MapVirtualKey(key, 2))+"键的映射,请检查音符文件!");
+        if (keyMap.find(key) == keyMap.end() ){
+            Logger::warn("未找到"+ to_string(MapVirtualKey(key,0))+"键的映射,请检查音符文件!");
             return "";
         }
         else{
