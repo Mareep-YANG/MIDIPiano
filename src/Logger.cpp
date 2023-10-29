@@ -1,12 +1,11 @@
+
 #include "iostream"
 #include "sstream"
 #include "iomanip"
 #include "fstream"
 
 using namespace std;
-enum logLevel {
-    INFO, WARN, SERIOUS
-};
+
 extern string logFileName;
 
 class Logger {
@@ -24,6 +23,9 @@ public:
     }
 
 private:
+    enum logLevel {
+        INFO, WARN, SERIOUS
+    };
     static void sendMessage(logLevel l, const string &s) {
         string logLevelStr;
         ofstream logFile(logFileName, ios::app);
