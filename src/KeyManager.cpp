@@ -1,6 +1,10 @@
 //
 // Created by ly on 2023/10/29.
 //
+/*
+ * 该类用于管理键盘映射
+ * 该类提供了添加映射和获取映射的方法
+ */
 #include <string>
 #include "map"
 #include "windows.h"

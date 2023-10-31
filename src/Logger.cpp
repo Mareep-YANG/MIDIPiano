@@ -1,4 +1,8 @@
-
+/*
+ * 该类用于记录日志
+ * 该类为静态类，不可实例化
+ * 该类提供三种日志级别的输出方法：info, warn, serious
+ */
 #include "iostream"
 #include "sstream"
 #include "iomanip"

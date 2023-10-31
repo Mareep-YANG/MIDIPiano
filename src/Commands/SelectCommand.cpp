@@ -11,7 +11,7 @@ using namespace std;
 
 // 选择音频设备
 int commandSelect() {
-    int selectedMidiDev = 0;
+    int selectedMidiDev = 0; // 选择的MIDI输出设备
     int numDev = midiOutGetNumDevs(); // 获取输出设备数量
     Logger::info("共有" + to_string(numDev) + "个MIDI输出设备");
     Logger::info("---------------------------");

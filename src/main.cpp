@@ -7,27 +7,33 @@
 #include "filesystem"
 #include "Entities/NoteEntity.cpp"
 // 函数声明
-int commandSelect();
+int commandSelect(); // 选择MIDI输出设备
 
-void commandHelp();
+void commandHelp(); // 显示帮助
 
-void commandStart(int);
+void commandStart(int);// 开始演奏
 
-string getCurrentDate();
+string getCurrentDate();// 获取当前时间
 
-void initLogFile();
+void initLogFile();// 初始化日志文件
 
-void initNoteFile();
+void initNoteFile();// 初始化音符文件
+
+
 
 //全局变量
-int selectedMidiDev = 0;
-string logFileName = "./logs/" + getCurrentDate() + ".log";
-KeyManager keyManager;
-map<string , NoteEntity> noteMap;
+int selectedMidiDev = 0; // 选择的MIDI输出设备
+string logFileName = "./logs/" + getCurrentDate() + ".log"; // 日志文件名
+KeyManager keyManager;// 键盘映射管理器
+map<string , NoteEntity> noteMap;// 音符表
 //主函数
-int main() {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     using namespace std;
-    SetConsoleOutputCP(CP_UTF8);
+    AllocConsole();// 打开一个控制台界面
+    if(freopen("CONOUT$", "w", stdout) == nullptr){
+        return 1;
+    }// 重定向标准输出到控制台
+    SetConsoleOutputCP(CP_UTF8);// 设置控制台输出编码为UTF-8
     initLogFile();
     initNoteFile();
     Logger::info("欢迎使用MIDI电子琴,键入help以获取帮助");
@@ -37,6 +43,7 @@ int main() {
 
         cout << "请输入指令>";
         cin >> s;
+        //保存用户输入到日志文件
         ofstream logFile(logFileName, ios::app);
         logFile << "Console:" << s << endl;
         logFile.close();
@@ -60,7 +67,9 @@ int main() {
         else if (s == "exit") {
             Logger::info("正在退出程序...按任意键继续");
             system("pause >nul");
+            FreeConsole();
             return 0;
+
         } else {
             Logger::warn("无效的指令 键入help以获取帮助");
         }
@@ -68,6 +77,7 @@ int main() {
 
 }
 
+// 获取当前时间
 std::string getCurrentDate() {
     time_t now = time(nullptr);
     const tm *localTime = localtime(&now);
@@ -80,7 +90,7 @@ std::string getCurrentDate() {
     return ss.str();
 }
 
-
+// 初始化日志文件
 void initLogFile() {
     //创建日志文件夹
     if (!filesystem::exists("./logs")) {
@@ -94,6 +104,7 @@ void initLogFile() {
     logFile.close();
     Logger::info("LoggerService初始化完成");
 }
+// 初始化音符文件
 void initNoteFile(){
     //创建音符文件夹
     if (!filesystem::exists("./notes")) {
@@ -115,7 +126,11 @@ void initNoteFile(){
             system("pause >nul");
             exit(1);
         }
-
+        if (noteMap.find(shortName) != noteMap.end()){
+            Logger::serious("音符文件"+shortName+"重复 按任意键退出程序");
+            system("pause >nul");
+            exit(1);
+        }
         noteMap.insert(pair<string,NoteEntity>(shortName, NoteEntity(noteNo,velocity,voiceNumber,shortName,key)));
         keyManager.addMapping(key, shortName);
         noteNum++;
