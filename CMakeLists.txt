@@ -8,6 +8,7 @@ link_libraries(libEasyX.a libgdi32.a libole32.a)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_WIN32_EXECUTABLE ON)
 configure_file("resource/image/background.png" "${CMAKE_BINARY_DIR}/resource/background.png" COPYONLY)
+configure_file("resource/image/op.png" "${CMAKE_BINARY_DIR}/resource/op.png" COPYONLY)
 add_executable(MIDIPiano src/main.cpp
         src/Logger.cpp
         src/Entities/NoteEntity.cpp
@@ -16,6 +17,7 @@ add_executable(MIDIPiano src/main.cpp
         src/Commands/HelpCommand.cpp
 
         src/KeyManager.cpp
+        src/GuiPiano.cpp
 )
 
 

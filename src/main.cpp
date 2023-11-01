@@ -1,12 +1,11 @@
 // -*- coding: utf-8 -*-
-#include <graphics.h>
+
 #include <iostream>
 #include <windows.h>
 #include "KeyManager.cpp"
 #include "fstream"
 #include "filesystem"
 #include "Entities/NoteEntity.cpp"
-
 // 函数声明
 int commandSelect(); // 选择MIDI输出设备
 
@@ -179,41 +178,6 @@ void initCfgFile() {
     }
 }
 
-void initGui() {
-    bool isStart = false;
-    initgraph(1000, 600);  // 初始化绘图环境
-    setfillcolor(RGB(0,168,225));
-    solidrectangle(0, 0, 1000, 50);
-    settextcolor(RGB(255,102,0));
-    setbkmode(TRANSPARENT);
-    settextstyle(30, 0,_T("Tahoma"),0,0,1000, false, false, false);
-    outtextxy(500 - textwidth("Key Board MIDIPiano") / 2, 10, _T("Key Board MIDIPiano"));
-    settextcolor(RGB(153,204,0));
-    settextstyle(20, 0,_T("Tahoma"),0,0,500, false, false, false);
-    outtextxy(500 + textwidth("Key Board MIDIPiano") , 15, _T("Any key to continue"));
-    IMAGE img;
-    loadimage(&img, _T("./resource/background.png"));
-    putimage(0, 50, &img);
-    while(true){
-        ExMessage msg{};
-        msg = getmessage(EX_KEY);
-        if(msg.message == WM_KEYDOWN && !isStart){
-            isStart = true;
-            cleardevice();
-            setfillcolor(RGB(0,168,225));
-            solidrectangle(0, 0, 1000, 50);
-            settextcolor(RGB(255,102,0));
-            setbkmode(TRANSPARENT);
-            settextstyle(30, 0,_T("Tahoma"),0,0,1000, false, false, false);
-            outtextxy(500 - textwidth("Key Board MIDIPiano") / 2, 10, _T("Key Board MIDIPiano"));
-            setfillcolor(RGB(128,0,128));
-            solidrectangle(0, 50, 1000, 100);
-            commandStart(selectedMidiDev);
-            continue;
-        }
-    }
-    closegraph();
 
-}
 
 
