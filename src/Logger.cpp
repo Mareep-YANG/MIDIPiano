@@ -11,7 +11,7 @@
 using namespace std;
 
 extern string logFileName;
-
+extern bool isCommandLineMode;
 class Logger {
 public:
     static void info(const string &s) {
@@ -40,13 +40,15 @@ private:
         } else if (l == 2) {
             logLevelStr = "SERIOUS";
         }
-        cout << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;
+        if (isCommandLineMode){
+            cout << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;
+        }
         logFile << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;
     }
 
     static string getCurrentDate() {
-        time_t now = time(0);
-        tm *localTime = localtime(&now);
+        time_t now = time(nullptr);
+        const tm *localTime = localtime(&now);
         ostringstream ss;
         ss << std::setw(2) << std::setfill('0') << (localTime->tm_hour) << ":"
            << std::setw(2) << std::setfill('0') << (localTime->tm_min) << ":"

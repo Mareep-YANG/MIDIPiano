@@ -5,18 +5,17 @@
 #include "windows.h"
 #include "mmeapi.h"
 #include "../Logger.cpp"
-#include "cstring"
 
 using namespace std;
 
 // 选择音频设备
 int commandSelect() {
     int selectedMidiDev = 0; // 选择的MIDI输出设备
-    int numDev = midiOutGetNumDevs(); // 获取输出设备数量
+    int numDev = static_cast<int>(midiOutGetNumDevs()); // 获取输出设备数量
     Logger::info("共有" + to_string(numDev) + "个MIDI输出设备");
     Logger::info("---------------------------");
     for (int i = 0; i < numDev; i++) {
-        MIDIOUTCAPS *devResult = new MIDIOUTCAPS; // 输出设备信息指针
+        auto *devResult = new MIDIOUTCAPS; // 输出设备信息指针
         MMRESULT resultState = midiOutGetDevCaps(i, devResult, sizeof(MIDIOUTCAPS)); // 获取状态
         if (resultState == MMSYSERR_NOERROR) { // 若获取成功
             // 打印设备信息

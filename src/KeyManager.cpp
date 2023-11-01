@@ -35,8 +35,8 @@ public:
     //获取所有键盘映射
     void commandMap() {
         Logger::info("当前键盘映射:");
-        for (auto it = keyMap.begin(); it != keyMap.end(); it++) {
-            Logger::info(to_string(MapVirtualKey(it->first, 2)) + " -> " + it->second);
+        for (auto & it : keyMap) {
+            Logger::info(to_string(MapVirtualKey(it.first, 2)) + " -> " + it.second);
         }
     }
 private:

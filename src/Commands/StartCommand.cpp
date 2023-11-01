@@ -20,6 +20,7 @@ bool keyState[256] = {false}; // 按键状态
 void initMidiOut(int); // 初始化MIDI输出设备
 
 
+
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
     using namespace std;
     if (nCode >= 0) {
@@ -42,7 +43,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                 msg |= (nowVoice & 0x7F) << 8;
                 midiOutShortMsg(hMidiOut, msg);
             } else { // 处理其他按键
-                string noteName = keyManager.getKeyNote(kbdStruct->vkCode);
+                string noteName = keyManager.getKeyNote(static_cast<int>(kbdStruct->vkCode));
                 if (!noteName.empty()) {
                     if (keyState[kbdStruct->vkCode]) {
                         return CallNextHookEx(nullptr, nCode, wParam, lParam);
@@ -64,7 +65,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
         if (kbdStruct->vkCode == VK_F1 || kbdStruct->vkCode == VK_F2) {
             return CallNextHookEx(nullptr, nCode, wParam, lParam);
         } // F1/F2按键不处理
-        string noteName = keyManager.getKeyNote(kbdStruct->vkCode); // 获取音符名
+        string noteName = keyManager.getKeyNote(static_cast<int>(kbdStruct->vkCode)); // 获取音符名
         if (!noteName.empty()) {
             keyState[kbdStruct->vkCode] = false;
             DWORD noteOnMsg = 0x80 | nowChannel; // 0x90表示Note Off消息
