@@ -44,6 +44,7 @@ private:
             cout << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;
         }
         logFile << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;
+        logFile.close();
     }
 
     static string getCurrentDate() {

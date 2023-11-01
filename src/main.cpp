@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-
+#include <graphics.h>
 #include <iostream>
 #include <windows.h>
 #include "KeyManager.cpp"
@@ -22,20 +22,9 @@ void initNoteFile();// 初始化音符文件
 
 void initCfgFile();// 初始化配置文件
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            break;
-        default:
-            return DefWindowProc(hwnd, uMsg, wParam, lParam);
-    }
-    return 0;
-}
-
-void initWindows(HINSTANCE, int);
-
 void initConsole();// 初始化控制台
+
+void initGui();// 初始化GUI
 //全局变量
 int selectedMidiDev = 0; // 选择的MIDI输出设备
 string logFileName = "./logs/" + getCurrentDate() + ".log"; // 日志文件名
@@ -43,20 +32,17 @@ KeyManager keyManager;// 键盘映射管理器
 map<string, NoteEntity> noteMap;// 音符表
 bool isCommandLineMode = true;// 是否为命令行模式
 //主函数
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int main() {
     using namespace std;
     initCfgFile();// 初始化配置文件
     if (isCommandLineMode) {
         initConsole(); // 初始化控制台
     } else {
-        initWindows(hInstance, nCmdShow);// 初始化窗口
+        initLogFile(); // 初始化日志文件
+        initNoteFile();// 初始化音符文件
+        initGui();// 初始化GUI
     }
-    initLogFile(); // 初始化日志文件
-    initNoteFile();// 初始化音符文件
-
-
 }
-
 //初始化控制台
 void initConsole() {
     AllocConsole();// 打开一个控制台界面
@@ -193,37 +179,41 @@ void initCfgFile() {
     }
 }
 
-//初始化窗口
-void initWindows(HINSTANCE hinstance, int nCmdShow) {
-    WNDCLASS wc = {};
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hinstance;
-    wc.lpszClassName = "MidiPiano";
-    RegisterClass(&wc);
-    HWND hwnd = CreateWindowExW(
-            0,                              // Optional window styles.
-            L"MidiPiano",                     // Window class
-            L"MIDI电子琴-科中软件考核-雷洋",    // Window text
-            WS_OVERLAPPEDWINDOW,            // Window style
-
-            // Size and position
-            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-
-            nullptr,       // Parent window
-            nullptr,       // Menu
-            hinstance,  // Instance handle
-            nullptr        // Additional application data
-    );
-
-    if (hwnd == nullptr) {
-        Logger::serious("窗口初始化失败 按任意键退出程序");
-        exit(1);
+void initGui() {
+    bool isStart = false;
+    initgraph(1000, 600);  // 初始化绘图环境
+    setfillcolor(RGB(0,168,225));
+    solidrectangle(0, 0, 1000, 50);
+    settextcolor(RGB(255,102,0));
+    setbkmode(TRANSPARENT);
+    settextstyle(30, 0,_T("Tahoma"),0,0,1000, false, false, false);
+    outtextxy(500 - textwidth("Key Board MIDIPiano") / 2, 10, _T("Key Board MIDIPiano"));
+    settextcolor(RGB(153,204,0));
+    settextstyle(20, 0,_T("Tahoma"),0,0,500, false, false, false);
+    outtextxy(500 + textwidth("Key Board MIDIPiano") , 15, _T("Any key to continue"));
+    IMAGE img;
+    loadimage(&img, _T("./resource/background.png"));
+    putimage(0, 50, &img);
+    while(true){
+        ExMessage msg{};
+        msg = getmessage(EX_KEY);
+        if(msg.message == WM_KEYDOWN && !isStart){
+            isStart = true;
+            cleardevice();
+            setfillcolor(RGB(0,168,225));
+            solidrectangle(0, 0, 1000, 50);
+            settextcolor(RGB(255,102,0));
+            setbkmode(TRANSPARENT);
+            settextstyle(30, 0,_T("Tahoma"),0,0,1000, false, false, false);
+            outtextxy(500 - textwidth("Key Board MIDIPiano") / 2, 10, _T("Key Board MIDIPiano"));
+            setfillcolor(RGB(128,0,128));
+            solidrectangle(0, 50, 1000, 100);
+            commandStart(selectedMidiDev);
+            continue;
+        }
     }
-    ShowWindow(hwnd, nCmdShow);
-    MSG msg;
-    while (GetMessage(&msg, nullptr, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+    closegraph();
+
 }
+
 
