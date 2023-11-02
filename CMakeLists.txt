@@ -18,6 +18,7 @@ add_executable(MIDIPiano src/main.cpp
 
         src/KeyManager.cpp
         src/GuiPiano.cpp
+        src/VoiceList.cpp
 )
 
 

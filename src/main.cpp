@@ -6,6 +6,7 @@
 #include "fstream"
 #include "filesystem"
 #include "Entities/NoteEntity.cpp"
+
 // 函数声明
 int commandSelect(); // 选择MIDI输出设备
 
@@ -42,6 +43,7 @@ int main() {
         initGui();// 初始化GUI
     }
 }
+
 //初始化控制台
 void initConsole() {
     AllocConsole();// 打开一个控制台界面
@@ -131,11 +133,9 @@ void initNoteFile() {
     for (const auto &entry: filesystem::directory_iterator("./notes")) {
         ifstream noteFile(entry.path());
         int noteNo;
-        int velocity;
-        int voiceNumber;
         string shortName;
         int key;
-        noteFile >> noteNo >> velocity >> voiceNumber >> shortName >> key;
+        noteFile >> noteNo >> shortName >> key;
         if (noteFile.fail()) {
             Logger::serious("音符文件格式错误 按任意键退出程序");
             system("pause >nul");
@@ -146,7 +146,7 @@ void initNoteFile() {
             system("pause >nul");
             exit(1);
         }
-        noteMap.insert(pair<string, NoteEntity>(shortName, NoteEntity(noteNo, velocity, voiceNumber, shortName, key)));
+        noteMap.insert(pair<string, NoteEntity>(shortName, NoteEntity(noteNo, shortName, key)));
         keyManager.addMapping(key, shortName);
         noteNum++;
     }

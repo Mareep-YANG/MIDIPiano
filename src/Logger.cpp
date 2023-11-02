@@ -12,6 +12,7 @@ using namespace std;
 
 extern string logFileName;
 extern bool isCommandLineMode;
+
 class Logger {
 public:
     static void info(const string &s) {
@@ -30,6 +31,7 @@ private:
     enum logLevel {
         INFO, WARN, SERIOUS
     };
+
     static void sendMessage(logLevel l, const string &s) {
         string logLevelStr;
         ofstream logFile(logFileName, ios::app);
@@ -40,7 +42,7 @@ private:
         } else if (l == 2) {
             logLevelStr = "SERIOUS";
         }
-        if (isCommandLineMode){
+        if (isCommandLineMode) {
             cout << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;
         }
         logFile << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;

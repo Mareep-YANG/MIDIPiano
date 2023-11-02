@@ -9,36 +9,39 @@
 #include "map"
 #include "windows.h"
 #include "./Logger.cpp"
+
 using namespace std;
+
 class KeyManager {
 public:
-    void addMapping(int key, const string& shortName){
-        if (keyMap.find(key) == keyMap.end()){
+    void addMapping(int key, const string &shortName) {
+        if (keyMap.find(key) == keyMap.end()) {
             keyMap.insert(pair<int, string>(key, shortName));
-        }
-        else{
+        } else {
             //已经存在
-            Logger::warn("已经存在"+ to_string(MapVirtualKey(key, 0))+"键的映射,请检查音符文件,将覆盖!");
+            Logger::warn("已经存在" + to_string(MapVirtualKey(key, 0)) + "键的映射,请检查音符文件,将覆盖!");
             keyMap[key] = shortName;
         }
 
     }
-    string getKeyNote(int key){
-        if (keyMap.find(key) == keyMap.end() ){
-            Logger::warn("未找到"+ to_string(MapVirtualKey(key,0))+"键的映射,请检查音符文件!");
+
+    string getKeyNote(int key) {
+        if (keyMap.find(key) == keyMap.end()) {
+            Logger::warn("未找到" + to_string(MapVirtualKey(key, 0)) + "键的映射,请检查音符文件!");
             return "";
-        }
-        else{
+        } else {
             return keyMap[key];
         }
     }
+
     //获取所有键盘映射
     void commandMap() {
         Logger::info("当前键盘映射:");
-        for (auto & it : keyMap) {
+        for (auto &it: keyMap) {
             Logger::info(to_string(MapVirtualKey(it.first, 2)) + " -> " + it.second);
         }
     }
+
 private:
     map<int, string> keyMap;
 };
