@@ -20,7 +20,7 @@ char keyOne[]{'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '/'};
 int codeOne[]{90, 88, 67, 86, 66, 78, 77, 188, 190, 191};
 char keyTwo[]{'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '"'};
 int codeTwo[]{65, 83, 68, 70, 71, 72, 74, 75, 76, 186, 222};
-char keyThree[]{'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', '\\'};
+char keyThree[]{'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[',']', '\\'};
 int codeThree[]{81, 87, 69, 82, 84, 89, 85, 73, 79, 80, 219, 220};
 extern bool keyState[256];
 extern BYTE nowVelocity;
@@ -72,6 +72,7 @@ void initGui() {
         if (msg.message == WM_KEYDOWN && msg.vkcode == VK_ESCAPE) {
             Logger::info("正在退出程序...");
             closegraph();
+            playThread.join();
             exit(0);
         }
         if (msg.message == WM_KEYDOWN && !isStart) {
@@ -81,7 +82,6 @@ void initGui() {
             continue;
         }
     }
-    closegraph();
 
 }
 

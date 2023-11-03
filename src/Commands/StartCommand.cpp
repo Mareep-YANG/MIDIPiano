@@ -13,7 +13,7 @@ HMIDIOUT hMidiOut; // MIDI输出设备句柄
 HHOOK hKeyboardHook; // 键盘钩子
 BYTE nowChannel = 0; // 当前通道
 BYTE nowVoice = 0; // 当前音色
-BYTE nowVelocity = 0; // 当前力度
+BYTE nowVelocity = 80; // 当前力度
 extern KeyManager keyManager;
 extern map<string, NoteEntity> noteMap;
 bool keyState[256] = {false}; // 按键状态
@@ -32,15 +32,15 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             if (kbdStruct->vkCode == VK_ESCAPE) { // 按下ESC
                 Logger::info("ESC被按下,将退出演奏模式");
                 PostQuitMessage(0);
-            } else if (kbdStruct->vkCode == VK_F1) { // 按下F1
-                Logger::info("F1被按下,音色-");
+            } else if (kbdStruct->vkCode == VK_LEFT) { // 按下F1
+                Logger::info("左键被按下,音色-");
                 nowVoice = nowVoice == 0 ? 127 : nowVoice - 1;
                 Logger::info("当前音色:" + midiSoundNames[nowVoice]);
                 DWORD msg = 0xC0 | nowChannel;
                 msg |= (nowVoice & 0x7F) << 8;
                 midiOutShortMsg(hMidiOut, msg);
-            } else if (kbdStruct->vkCode == VK_F2) { // 按下F2
-                Logger::info("F2被按下,音色+");
+            } else if (kbdStruct->vkCode == VK_RIGHT) { // 按下F2
+                Logger::info("右键被按下,音色+");
                 nowVoice = (nowVoice + 1) % 128;
                 Logger::info("当前音色:" + midiSoundNames[nowVoice]);
                 DWORD msg = 0xC0 | nowChannel;
@@ -72,7 +72,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
     }
     if (wParam == WM_KEYUP) { // 处理键盘按键抬起
         const KBDLLHOOKSTRUCT *kbdStruct = reinterpret_cast<KBDLLHOOKSTRUCT *>(lParam);
-        if (kbdStruct->vkCode == VK_F1 || kbdStruct->vkCode == VK_F2 || kbdStruct->vkCode == VK_UP ||
+        if (kbdStruct->vkCode == VK_LEFT || kbdStruct->vkCode == VK_RIGHT || kbdStruct->vkCode == VK_UP ||
             kbdStruct->vkCode == VK_DOWN) {
             return CallNextHookEx(nullptr, nCode, wParam, lParam);
         } // F1/F2按键不处理
