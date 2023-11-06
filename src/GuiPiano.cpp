@@ -16,19 +16,20 @@ extern int selectedMidiDev;
 std::thread playThread;
 extern BYTE nowVoice;
 extern std::vector<std::string> midiSoundNamesEng;
+// 键盘字符和键码对应表(按位置)
 char keyOne[]{'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '/'};
 int codeOne[]{90, 88, 67, 86, 66, 78, 77, 188, 190, 191};
 char keyTwo[]{'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '"'};
 int codeTwo[]{65, 83, 68, 70, 71, 72, 74, 75, 76, 186, 222};
-char keyThree[]{'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[',']', '\\'};
+char keyThree[]{'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\'};
 int codeThree[]{81, 87, 69, 82, 84, 89, 85, 73, 79, 80, 219, 220};
 extern bool keyState[256];
 extern BYTE nowVelocity;
 
 void initGui() {
-    SetConsoleOutputCP(65001);
     bool isStart = false;
     initgraph(1000, 600);  // 初始化绘图环境
+    // 绘制标题栏
     setfillcolor(RGB(0, 168, 225));
     solidrectangle(0, 0, 1000, 50);
     settextcolor(RGB(255, 102, 0));
@@ -38,20 +39,24 @@ void initGui() {
     settextcolor(RGB(153, 204, 0));
     settextstyle(20, 0, _T("Tahoma"), 0, 0, 500, false, false, false);
     outtextxy(500 + textwidth("Key Board MIDIPiano"), 15, _T("Any key to continue"));
+    // 绘制背景图
     IMAGE img;
     loadimage(&img, _T("./resource/background.png"));
     putimage(0, 50, &img);
+    // 消息循环
     while (true) {
         ExMessage msg{};
         msg = getmessage(EX_KEY);
         if (isStart) {
-            BeginBatchDraw();
+            BeginBatchDraw(); // 开始批量绘图
+            // 绘制标题栏
             setfillcolor(RGB(0, 168, 225));
             solidrectangle(0, 0, 1000, 50);
             settextcolor(RGB(255, 102, 0));
             setbkmode(TRANSPARENT);
             settextstyle(30, 0, _T("Tahoma"), 0, 0, 1000, false, false, false);
             outtextxy(500 - textwidth("Key Board MIDIPiano") / 2, 10, _T("Key Board MIDIPiano"));
+            // 绘制状态栏
             setfillcolor(RGB(128, 0, 128));
             solidrectangle(0, 50, 1000, 100);
             settextcolor(RGB(255, 255, 255));
@@ -63,11 +68,11 @@ void initGui() {
             outtextxy(
                     10 + textwidth("Voice:") + textwidth(midiSoundNamesEng[nowVoice].c_str()) + textwidth("Velocity:") +
                     20,
-                    60, to_string(nowVelocity).c_str());
+                    60, std::to_string(nowVelocity).c_str());
             loadimage(&img, _T("./resource/op.png"));
             putimage(0, 100, &img);
-            drawPianoKeys();
-            EndBatchDraw();
+            drawPianoKeys(); // 绘制琴键
+            EndBatchDraw();// 结束批量绘图
         }
         if (msg.message == WM_KEYDOWN && msg.vkcode == VK_ESCAPE) {
             Logger::info("正在退出程序...");

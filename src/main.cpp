@@ -14,7 +14,7 @@ void commandHelp(); // 显示帮助
 
 void commandStart(int);// 开始演奏
 
-string getCurrentDate();// 获取当前时间
+std::string getCurrentDate();// 获取当前时间
 
 void initLogFile();// 初始化日志文件
 
@@ -27,13 +27,13 @@ void initConsole();// 初始化控制台
 void initGui();// 初始化GUI
 //全局变量
 int selectedMidiDev = 0; // 选择的MIDI输出设备
-string logFileName = "./logs/" + getCurrentDate() + ".log"; // 日志文件名
+std::string logFileName = "./logs/" + getCurrentDate() + ".log"; // 日志文件名
 KeyManager keyManager;// 键盘映射管理器
-map<string, NoteEntity> noteMap;// 音符表
+std::map<std::string, NoteEntity> noteMap;// 音符表
 bool isCommandLineMode = true;// 是否为命令行模式
+
 //主函数
 int main() {
-    using namespace std;
     initCfgFile();// 初始化配置文件
     if (isCommandLineMode) {
         initConsole(); // 初始化控制台
@@ -57,12 +57,12 @@ void initConsole() {
     Logger::info("欢迎使用MIDI电子琴,键入help以获取帮助");
     while (true) {
         //输入操作符
-        string s;
-        cout << "请输入指令>";
-        cin >> s;
+        std::string s;
+        std::cout << "请输入指令>";
+        std::cin >> s;
         //保存用户输入到日志文件
-        ofstream logFile(logFileName, ios::app);
-        logFile << "Console:" << s << endl;
+        std::ofstream logFile(logFileName, std::ios::app);
+        logFile << "Console:" << s << std::endl;
         logFile.close();
         // 选择使用的MIDI输出设备
         if (s == "select") {
@@ -109,14 +109,14 @@ std::string getCurrentDate() {
 // 初始化日志文件
 void initLogFile() {
     //创建日志文件夹
-    if (!filesystem::exists("./logs")) {
-        filesystem::create_directory("./logs");
+    if (!std::filesystem::exists("./logs")) {
+        std::filesystem::create_directory("./logs");
     }
     //创建日志文件
-    for (int i = 1; filesystem::exists(logFileName); i++) {
-        logFileName = "./logs/" + getCurrentDate() + "-" + to_string(i) + ".log";
+    for (int i = 1; std::filesystem::exists(logFileName); i++) {
+        logFileName = "./logs/" + getCurrentDate() + "-" + std::to_string(i) + ".log";
     }
-    ofstream logFile(logFileName, ios::app);
+    std::ofstream logFile(logFileName, std::ios::app);
     logFile.close();
     Logger::info("LoggerService初始化完成");
 }
@@ -124,16 +124,16 @@ void initLogFile() {
 // 初始化音符文件
 void initNoteFile() {
     //创建音符文件夹
-    if (!filesystem::exists("./notes")) {
-        filesystem::create_directory("./notes");
+    if (!std::filesystem::exists("./notes")) {
+        std::filesystem::create_directory("./notes");
     }
 
     //读取文件夹内所有音符文件
     int noteNum = 0;
-    for (const auto &entry: filesystem::directory_iterator("./notes")) {
-        ifstream noteFile(entry.path());
+    for (const auto &entry: std::filesystem::directory_iterator("./notes")) {
+        std::ifstream noteFile(entry.path());
         int noteNo;
-        string shortName;
+        std::string shortName;
         int key;
         noteFile >> noteNo >> shortName >> key;
         if (noteFile.fail()) {
@@ -146,32 +146,32 @@ void initNoteFile() {
             system("pause >nul");
             exit(1);
         }
-        noteMap.insert(pair<string, NoteEntity>(shortName, NoteEntity(noteNo, shortName, key)));
+        noteMap.insert(std::pair<std::string, NoteEntity>(shortName, NoteEntity(noteNo, shortName, key)));
         keyManager.addMapping(key, shortName);
         noteNum++;
     }
     Logger::info("NoteService初始化完成");
-    Logger::info("共读取到" + to_string(noteNum) + "个音符文件");
+    Logger::info("共读取到" + std::to_string(noteNum) + "个音符文件");
 
 }
 
 // 初始化配置文件
 void initCfgFile() {
     //创建配置文件
-    if (!filesystem::exists("./config.cfg")) {
-        ofstream cfgFile("./config.cfg", ios::app);
-        cfgFile << "selectedMidiDev=0" << endl;
-        cfgFile << "isCommandLineMode=true" << endl;
+    if (!std::filesystem::exists("./config.cfg")) {
+        std::ofstream cfgFile("./config.cfg", std::ios::app);
+        cfgFile << "selectedMidiDev=0" << std::endl;
+        cfgFile << "isCommandLineMode=true" << std::endl;
         cfgFile.close();
     } else {
         // 读取配置文件
-        ifstream cfgFile("./config.cfg");
-        string line;
+        std::ifstream cfgFile("./config.cfg");
+        std::string line;
         while (getline(cfgFile, line)) {
-            if (line.find("selectedMidiDev=") != string::npos) {
-                selectedMidiDev = stoi(line.substr(line.find('=') + 1));
-            } else if (line.find("isCommandLineMode=") != string::npos) {
-                isCommandLineMode = line.find("true") != string::npos;
+            if (line.find("selectedMidiDev=") != std::string::npos) {
+                selectedMidiDev = stoi(line.substr(line.find('=') + 1)) - 1;
+            } else if (line.find("isCommandLineMode=") != std::string::npos) {
+                isCommandLineMode = line.find("true") != std::string::npos;
             }
         }
         cfgFile.close();

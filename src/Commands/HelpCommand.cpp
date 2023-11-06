@@ -4,7 +4,6 @@
 #include "../Logger.cpp"
 
 void commandHelp() {
-    using namespace std;
     Logger::info("---------------------------");
     Logger::info("help -> 打印帮助信息");
     Logger::info("select -> 选择MIDI输出设备");

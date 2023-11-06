@@ -8,22 +8,21 @@
 #include "iomanip"
 #include "fstream"
 
-using namespace std;
 
-extern string logFileName;
+extern std::string logFileName;
 extern bool isCommandLineMode;
 
 class Logger {
 public:
-    static void info(const string &s) {
+    static void info(const std::string &s) {
         sendMessage(INFO, s);
     }
 
-    static void warn(const string &s) {
+    static void warn(const std::string &s) {
         sendMessage(WARN, s);
     }
 
-    static void serious(const string &s) {
+    static void serious(const std::string &s) {
         sendMessage(SERIOUS, s);
     }
 
@@ -32,9 +31,9 @@ private:
         INFO, WARN, SERIOUS
     };
 
-    static void sendMessage(logLevel l, const string &s) {
-        string logLevelStr;
-        ofstream logFile(logFileName, ios::app);
+    static void sendMessage(logLevel l, const std::string &s) {
+        std::string logLevelStr;
+        std::ofstream logFile(logFileName, std::ios::app);
         if (l == 0) {
             logLevelStr = "INFO";
         } else if (l == 1) {
@@ -43,16 +42,16 @@ private:
             logLevelStr = "SERIOUS";
         }
         if (isCommandLineMode) {
-            cout << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;
+            std::cout << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << std::endl;
         }
-        logFile << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << endl;
+        logFile << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << std::endl;
         logFile.close();
     }
 
-    static string getCurrentDate() {
+    static std::string getCurrentDate() {
         time_t now = time(nullptr);
         const tm *localTime = localtime(&now);
-        ostringstream ss;
+        std::ostringstream ss;
         ss << std::setw(2) << std::setfill('0') << (localTime->tm_hour) << ":"
            << std::setw(2) << std::setfill('0') << (localTime->tm_min) << ":"
            << std::setw(2) << std::setfill('0') << localTime->tm_sec;

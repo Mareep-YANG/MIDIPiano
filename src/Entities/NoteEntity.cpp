@@ -12,12 +12,11 @@
 #include "windows.h"
 #include "string"
 
-using namespace std;
 
 class NoteEntity {
 public:
     BYTE noteNo;
-    string shortName;
+    std::string shortName;
     int key;
 
     NoteEntity() {
@@ -26,7 +25,7 @@ public:
         this->key = 0;
     };
 
-    NoteEntity(const BYTE &noteNo, const string &shortName, const int &key) {
+    NoteEntity(const BYTE &noteNo, const std::string &shortName, const int &key) {
         this->noteNo = noteNo;
         this->shortName = shortName;
         this->key = key;

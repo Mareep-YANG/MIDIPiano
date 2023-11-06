@@ -15,74 +15,24 @@ BYTE nowChannel = 0; // 当前通道
 BYTE nowVoice = 0; // 当前音色
 BYTE nowVelocity = 80; // 当前力度
 extern KeyManager keyManager;
-extern map<string, NoteEntity> noteMap;
+extern std::map<std::string, NoteEntity> noteMap;
 bool keyState[256] = {false}; // 按键状态
 extern std::vector<std::string> midiSoundNames;
 //函数声明
-
 void initMidiOut(int); // 初始化MIDI输出设备
-
-
+void voiceChange(bool); // 音色改变
+void velocityChange(bool);// 音量改变
+void nodeKeyHandler(DWORD, bool); // 处理琴键按键
+void keyHandler(DWORD, bool);// 处理按键
 
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
-    using namespace std;
     if (nCode >= 0) {
-        if (wParam == WM_KEYDOWN) { // 处理键盘按键按下
-            const KBDLLHOOKSTRUCT *kbdStruct = reinterpret_cast<KBDLLHOOKSTRUCT *>(lParam);
-            if (kbdStruct->vkCode == VK_ESCAPE) { // 按下ESC
-                Logger::info("ESC被按下,将退出演奏模式");
-                PostQuitMessage(0);
-            } else if (kbdStruct->vkCode == VK_LEFT) { // 按下F1
-                Logger::info("左键被按下,音色-");
-                nowVoice = nowVoice == 0 ? 127 : nowVoice - 1;
-                Logger::info("当前音色:" + midiSoundNames[nowVoice]);
-                DWORD msg = 0xC0 | nowChannel;
-                msg |= (nowVoice & 0x7F) << 8;
-                midiOutShortMsg(hMidiOut, msg);
-            } else if (kbdStruct->vkCode == VK_RIGHT) { // 按下F2
-                Logger::info("右键被按下,音色+");
-                nowVoice = (nowVoice + 1) % 128;
-                Logger::info("当前音色:" + midiSoundNames[nowVoice]);
-                DWORD msg = 0xC0 | nowChannel;
-                msg |= (nowVoice & 0x7F) << 8;
-                midiOutShortMsg(hMidiOut, msg);
-            } else if (kbdStruct->vkCode == VK_UP) {
-                nowVelocity = nowVelocity == 127 ? 127 : nowVelocity + 1;
-                Logger::info("当前力度:" + to_string(nowVelocity));
-            } else if (kbdStruct->vkCode == VK_DOWN) {
-                nowVelocity = nowVelocity == 0 ? 0 : nowVelocity - 1;
-                Logger::info("当前力度:" + to_string(nowVelocity));
-            } else { // 处理其他按键
-                string noteName = keyManager.getKeyNote(static_cast<int>(kbdStruct->vkCode));
-                if (!noteName.empty()) {
-                    if (keyState[kbdStruct->vkCode]) {
-                        return CallNextHookEx(nullptr, nCode, wParam, lParam);
-                    } else {
-                        keyState[kbdStruct->vkCode] = true;
-                        DWORD noteOnMsg = 0x90 | nowChannel; // 音符开启消息
-                        noteOnMsg |= (noteMap[noteName].noteNo & 0x7F) << 8;  // 音符号
-                        noteOnMsg |= (nowVelocity & 0x7F) << 16; // 力度
-                        midiOutShortMsg(hMidiOut, noteOnMsg);
-                    }
-
-                }
-
-            }
-        }
-    }
-    if (wParam == WM_KEYUP) { // 处理键盘按键抬起
         const KBDLLHOOKSTRUCT *kbdStruct = reinterpret_cast<KBDLLHOOKSTRUCT *>(lParam);
-        if (kbdStruct->vkCode == VK_LEFT || kbdStruct->vkCode == VK_RIGHT || kbdStruct->vkCode == VK_UP ||
-            kbdStruct->vkCode == VK_DOWN) {
-            return CallNextHookEx(nullptr, nCode, wParam, lParam);
-        } // F1/F2按键不处理
-        string noteName = keyManager.getKeyNote(static_cast<int>(kbdStruct->vkCode)); // 获取音符名
-        if (!noteName.empty()) {
-            keyState[kbdStruct->vkCode] = false;
-            DWORD noteOnMsg = 0x80 | nowChannel; // 0x90表示Note Off消息
-            noteOnMsg |= (noteMap[noteName].noteNo & 0x7F) << 8;  // 音符号
-            noteOnMsg |= (0 & 0x7F) << 16; // 力度
-            midiOutShortMsg(hMidiOut, noteOnMsg);
+        if (wParam == WM_KEYDOWN) { // 处理键盘按键按下
+            keyHandler(kbdStruct->vkCode, true);
+        }
+        if (wParam == WM_KEYUP) { // 处理键盘按键抬起
+            keyHandler(kbdStruct->vkCode, false);
         }
     }
     return CallNextHookEx(nullptr, nCode, wParam, lParam);
@@ -90,7 +40,6 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
 
 void commandStart(int selectMidiDev) {
-    using namespace std; // 使用std名字空间
     initMidiOut(selectMidiDev);// 初始化Midi输出设备
     Logger::info("按ESC退出演奏模式 F1/F2切换音色");
 
@@ -100,8 +49,8 @@ void commandStart(int selectMidiDev) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-    cin.ignore();
-    cin.clear();
+    std::cin.ignore();
+    std::cin.clear();
     UnhookWindowsHookEx(hKeyboardHook);// 卸载键盘钩子
     midiOutClose(hMidiOut); // 关闭MIDI输出设备
 
@@ -115,5 +64,80 @@ void initMidiOut(int selectMidiDev) {
     } else {
         Logger::warn("MIDI输出设备初始化失败");
     }
+}
 
+//改变音色函数
+void voiceChange(bool sign) {
+    if (sign) {
+        Logger::info("右键被按下,音色+");
+        nowVoice = (nowVoice + 1) % 128;
+        Logger::info("当前音色:" + midiSoundNames[nowVoice]);
+    } else {
+        Logger::info("左键被按下,音色-");
+        nowVoice = nowVoice == 0 ? 127 : nowVoice - 1;
+        Logger::info("当前音色:" + midiSoundNames[nowVoice]);
+    }
+    DWORD msg = 0xC0 | nowChannel;
+    msg |= (nowVoice & 0x7F) << 8;
+    midiOutShortMsg(hMidiOut, msg);
+}
+
+void velocityChange(bool sign) {
+    if (sign) {
+        nowVelocity = nowVelocity == 127 ? 127 : nowVelocity + 1;
+    } else {
+        nowVelocity = nowVelocity == 0 ? 0 : nowVelocity - 1;
+    }
+    Logger::info("当前力度:" + std::to_string(nowVelocity));
+}
+
+void nodeKeyHandler(DWORD key, bool sign) {
+    if (sign) {
+        std::string noteName = keyManager.getKeyNote(static_cast<int>(key));
+        if (!noteName.empty()) {
+            if (keyState[key]) {
+                return;
+            } else {
+                keyState[key] = true;
+                DWORD noteOnMsg = 0x90 | nowChannel; // 音符开启消息
+                noteOnMsg |= (noteMap[noteName].noteNo & 0x7F) << 8;  // 音符号
+                noteOnMsg |= (nowVelocity & 0x7F) << 16; // 力度
+                midiOutShortMsg(hMidiOut, noteOnMsg);
+                return;
+            }
+        }
+    } else {
+        std::string noteName = keyManager.getKeyNote(static_cast<int>(key)); // 获取音符名
+        if (!noteName.empty()) {
+            keyState[key] = false;
+            DWORD noteOnMsg = 0x80 | nowChannel; // 0x90表示Note Off消息
+            noteOnMsg |= (noteMap[noteName].noteNo & 0x7F) << 8;  // 音符号
+            noteOnMsg |= (0 & 0x7F) << 16; // 力度
+            midiOutShortMsg(hMidiOut, noteOnMsg);
+        }
+        return;
+    }
+}
+
+void keyHandler(DWORD key, bool sign) {
+    if (sign) {
+        if (key == VK_ESCAPE) { // 按下ESC
+            Logger::info("ESC被按下,将退出演奏模式");
+            PostQuitMessage(0);
+        } else if (key == VK_LEFT) { // 按下左键
+            voiceChange(false);
+        } else if (key == VK_RIGHT) { // 按下右键
+            voiceChange(true);
+        } else if (key == VK_UP) {
+            velocityChange(true);
+        } else if (key == VK_DOWN) {
+            velocityChange(false);
+        } else { // 处理其他按键
+            nodeKeyHandler(key, true);
+        }
+    } else {
+        if (!(key == VK_LEFT || key == VK_RIGHT || key == VK_UP || key == VK_DOWN)) {
+            nodeKeyHandler(key, false);//处理琴键按键
+        }
+    }
 }
