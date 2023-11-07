@@ -12,26 +12,23 @@
 #include<thread>
 #include <synchapi.h>
 #include "../Logger.cpp"
-
+#include "chrono"
 // 函数声明
 void commandStart(int);// 开始演奏
 //全局变量
-long long tick = 0; // 计时器
 extern int selectedMidiDev; // 选择的MIDI输出设备
 std::ofstream musicFile; // 曲谱文件对象
 bool isRecording = false; // 是否正在录制模式 , 该变量由主线程控制 , 在start线程使用
 extern bool isPlaying; // 是否正在演奏 , 该变量由start线程控制 , 在主线程使用
+std::chrono::steady_clock::time_point startRecordTime; // 开始时间
 void commandRecord(const std::string &musicName) {
     std::thread startRecord(commandStart, selectedMidiDev); // 开线程
     isRecording = true;
-    musicFile = std::ofstream("./music/" + musicName + ".txt", std::ios::app);//  创建曲谱文件
+    musicFile = std::ofstream("./musics/" + musicName + ".txt", std::ios::app);//  创建曲谱文件
     musicFile << musicName << std::endl;// 写入曲谱名
-
     Logger::info("正在录制曲谱...可以开始弹奏");
-    while (isPlaying) {
-        Sleep(1);
-        tick++;
-    }
+    startRecordTime = std::chrono::steady_clock::now();
+
     startRecord.join();
     isRecording = false;
     musicFile.close();

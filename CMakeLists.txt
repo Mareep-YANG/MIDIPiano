@@ -19,6 +19,9 @@ add_executable(MIDIPiano src/main.cpp
         src/GuiPiano.cpp
         src/VoiceList.cpp
         src/Commands/RecordCommand.cpp
+        src/Entities/MusicNoteEntity.cpp
+        src/Entities/MusicEntity.cpp
+        src/Commands/MusicPlayCommand.cpp
 )
 
 

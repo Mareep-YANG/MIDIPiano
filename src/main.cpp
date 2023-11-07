@@ -8,7 +8,7 @@
 #include "Entities/NoteEntity.cpp"
 #include <vector>
 #include <thread>
-
+#include "./Entities/MusicEntity.cpp"
 // 函数声明
 int commandSelect(); // 选择MIDI输出设备
 
@@ -31,13 +31,15 @@ void initGui();// 初始化GUI
 void initMusic();// 初始化曲谱文件
 
 void commandRecord(const std::string & musicName);// 录制曲谱
+
+void commandMusicPlay(const std::string & musicName);// 演奏曲谱
 //全局变量
 int selectedMidiDev = 0; // 选择的MIDI输出设备
 std::string logFileName = "./logs/" + getCurrentDate() + ".log"; // 日志文件名
 KeyManager keyManager;// 键盘映射管理器
 std::map<std::string, NoteEntity> noteMap;// 音符表
 bool isCommandLineMode = true;// 是否为命令行模式
-std::map<std::string, std::vector<std::vector<std::string>>> musicMap;//曲谱表
+std::map<std::string , MusicEntity> musicMap;// 曲谱表
 //主函数
 int main() {
     initCfgFile();// 初始化配置文件
@@ -100,6 +102,11 @@ void initConsole() {
             std::cin >> musicName;
             Logger::info("开始录制曲谱" + musicName + "若有重复曲谱将会覆盖!");
             commandRecord(musicName);
+        }else if(s == "play"){
+            Logger::info("请输入曲谱名");
+            std::string musicName;
+            std::cin >> musicName;
+            commandMusicPlay(musicName);
         } else {
             Logger::warn("无效的指令 键入help以获取帮助");
         }
@@ -114,6 +121,7 @@ std::string getCurrentDate() {
     ss << (localTime->tm_year + 1900) << '-'
        << (localTime->tm_mon + 1) << '-'
        << localTime->tm_mday;
+
 
     // 返回日期字符串
     return ss.str();
@@ -206,28 +214,16 @@ void initMusic() {
                 system("pause >nul");
                 exit(1);
             }
-            std::vector<std::vector<std::string>> music;
-            std::vector<std::string> currentRow;
-            std::string line;
-            while (std::getline(musicFile, line)) {
-                if (line.empty()) {
-                    // 遇到空行表示当前行的数据结束
-                    music.push_back(currentRow);
-                    currentRow.clear();
-                } else {
-                    // 否则将行数据添加到当前行
-                    currentRow.push_back(line);
-                }
+            std::vector<MusicNoteEntity> notes; // 定义音符列表
+            std::string noteName; // 定义音符名变量
+            double time; // 定义音符时长变量
+            bool isDown;
+            while (musicFile >> noteName >> time >> isDown) {
+                notes.emplace_back(noteName, time, isDown);
             }
-
-            if (musicFile.fail()) {
-                Logger::serious("曲谱格式错误 按任意键退出程序");
-                system("pause >nul");
-                exit(1);
-            } else {
-                musicMap.insert(std::pair<std::string, std::vector<std::vector<std::string>>>(musicName, music));
-                musicNum++;
-            }
+            MusicEntity musicEntity(musicName, notes);
+            musicMap.insert(std::pair<std::string, MusicEntity>(musicName, musicEntity));
+            musicNum++;
             musicFile.close();
         }
         Logger::info("MusicService初始化完成");

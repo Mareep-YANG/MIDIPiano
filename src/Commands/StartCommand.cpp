@@ -8,7 +8,7 @@
 #include "../Entities/NoteEntity.cpp"
 #include "vector"
 #include <fstream>
-
+#include <chrono>
 //全局变量
 extern long long tick;
 HMIDIOUT hMidiOut; // MIDI输出设备句柄
@@ -23,13 +23,14 @@ extern std::vector<std::string> midiSoundNames;
 bool isPlaying = true; // 是否正在演奏
 extern bool isRecording;// 是否正在录制
 extern std::ofstream musicFile; // 曲谱文件对象
+extern std::chrono::steady_clock::time_point startRecordTime; // 开始录制时间
 //函数声明
 void initMidiOut(int); // 初始化MIDI输出设备
 void voiceChange(bool); // 音色改变
 void velocityChange(bool);// 音量改变
 void nodeKeyHandler(DWORD, bool); // 处理琴键按键
 void keyHandler(DWORD, bool);// 处理按键
-
+void nodeKeyHandler(const std::string& ,bool);
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
         const KBDLLHOOKSTRUCT *kbdStruct = reinterpret_cast<KBDLLHOOKSTRUCT *>(lParam);
@@ -105,8 +106,10 @@ void nodeKeyHandler(DWORD key, bool sign) {
             noteOnMsg |= (noteMap[noteName].noteNo & 0x7F) << 8;  // 音符号
             noteOnMsg |= (nowVelocity & 0x7F) << 16; // 力度
             midiOutShortMsg(hMidiOut, noteOnMsg);
+            std::chrono::steady_clock::time_point via = std::chrono::steady_clock::now();
+            std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(via - startRecordTime);
             if(isRecording){
-                musicFile << noteName << " " << tick << std::endl;
+                musicFile << noteName << " " << duration.count() <<" "<< true<< std::endl;
             }
             return;
         }
@@ -118,9 +121,17 @@ void nodeKeyHandler(DWORD key, bool sign) {
             noteOnMsg |= (noteMap[noteName].noteNo & 0x7F) << 8;  // 音符号
             noteOnMsg |= (0 & 0x7F) << 16; // 力度
             midiOutShortMsg(hMidiOut, noteOnMsg);
+            std::chrono::steady_clock::time_point via = std::chrono::steady_clock::now();
+            std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(via - startRecordTime);
+            if(isRecording){
+                musicFile << noteName << " " << duration.count() <<" "<< false<< std::endl;
+            }
         }
         return;
     }
+}
+void nodeKeyHandler(const std::string& noteName ,bool sign){
+    nodeKeyHandler(keyManager.getNoteKey(noteName),sign);
 }
 
 void keyHandler(DWORD key, bool sign) {
@@ -137,8 +148,6 @@ void keyHandler(DWORD key, bool sign) {
             velocityChange(true);
         } else if (key == VK_DOWN) {
             velocityChange(false);
-        } else if (key == VK_F1) {
-
         } else { // 处理其他按键
             nodeKeyHandler(key, true);
         }
@@ -148,3 +157,4 @@ void keyHandler(DWORD key, bool sign) {
         }
     }
 }
+

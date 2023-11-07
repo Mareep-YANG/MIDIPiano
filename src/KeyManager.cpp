@@ -9,13 +9,14 @@
 #include "map"
 #include "windows.h"
 #include "./Logger.cpp"
-
+#include "algorithm"
 
 class KeyManager {
 public:
     void addMapping(int key, const std::string &shortName) {
         if (keyMap.find(key) == keyMap.end()) {
             keyMap.insert(std::pair<int, std::string>(key, shortName));
+            keyMapReverse.insert(std::pair<std::string, int>(shortName, key));
         } else {
             //已经存在
             Logger::warn("已经存在" + std::to_string(MapVirtualKey(key, 0)) + "键的映射,请检查音符文件,将覆盖!");
@@ -32,6 +33,14 @@ public:
             return keyMap[key];
         }
     }
+    int getNoteKey(const std::string &note) {
+        if (keyMapReverse.find(note) == keyMapReverse.end()) {
+            Logger::warn("未找到" + note + "的映射,请检查音符文件!");
+            return 0;
+        } else {
+            return keyMapReverse[note];
+        }
+    }
 
     //获取所有键盘映射
     void commandMap() {
@@ -43,4 +52,5 @@ public:
 
 private:
     std::map<int, std::string> keyMap;
+    std::map<std::string, int> keyMapReverse;
 };

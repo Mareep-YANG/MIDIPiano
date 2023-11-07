@@ -9,6 +9,7 @@
  * shortName:音符代码
  * key:键盘按键
  * */
+#pragma once
 #include "windows.h"
 #include "string"
 

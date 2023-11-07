@@ -11,5 +11,6 @@ void commandHelp() {
     Logger::info("start -> 开始MIDI演奏");
     Logger::info("exit -> 退出程序");
     Logger::info("record -> 录制曲谱");
+    Logger::info("play -> 演奏曲谱");
     Logger::info("---------------------------");
 }
