@@ -5,7 +5,6 @@
 #include <vector>
 #include "thread"
 #include "./KeyManager.cpp"
-
 //函数声明
 void commandStart(int);// 开始演奏
 void drawPianoKeys();
@@ -69,8 +68,9 @@ void initGui() {
                     10 + textwidth("Voice:") + textwidth(midiSoundNamesEng[nowVoice].c_str()) + textwidth("Velocity:") +
                     20,
                     60, std::to_string(nowVelocity).c_str());
-            loadimage(&img, _T("./resource/op.png"));
-            putimage(0, 100, &img);
+            //绘制录制栏
+            setfillcolor(RGB(0,153,78));
+            solidrectangle(0,100,1000,150);
             drawPianoKeys(); // 绘制琴键
             EndBatchDraw();// 结束批量绘图
         }

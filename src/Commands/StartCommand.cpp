@@ -7,8 +7,10 @@
 #include "map"
 #include "../Entities/NoteEntity.cpp"
 #include "vector"
+#include <fstream>
 
 //全局变量
+extern long long tick;
 HMIDIOUT hMidiOut; // MIDI输出设备句柄
 HHOOK hKeyboardHook; // 键盘钩子
 BYTE nowChannel = 0; // 当前通道
@@ -18,6 +20,9 @@ extern KeyManager keyManager;
 extern std::map<std::string, NoteEntity> noteMap;
 bool keyState[256] = {false}; // 按键状态
 extern std::vector<std::string> midiSoundNames;
+bool isPlaying = true; // 是否正在演奏
+extern bool isRecording;// 是否正在录制
+extern std::ofstream musicFile; // 曲谱文件对象
 //函数声明
 void initMidiOut(int); // 初始化MIDI输出设备
 void voiceChange(bool); // 音色改变
@@ -94,17 +99,16 @@ void velocityChange(bool sign) {
 void nodeKeyHandler(DWORD key, bool sign) {
     if (sign) {
         std::string noteName = keyManager.getKeyNote(static_cast<int>(key));
-        if (!noteName.empty()) {
-            if (keyState[key]) {
-                return;
-            } else {
-                keyState[key] = true;
-                DWORD noteOnMsg = 0x90 | nowChannel; // 音符开启消息
-                noteOnMsg |= (noteMap[noteName].noteNo & 0x7F) << 8;  // 音符号
-                noteOnMsg |= (nowVelocity & 0x7F) << 16; // 力度
-                midiOutShortMsg(hMidiOut, noteOnMsg);
-                return;
+        if (!noteName.empty() && !keyState[key]) {
+            keyState[key] = true;
+            DWORD noteOnMsg = 0x90 | nowChannel; // 音符开启消息
+            noteOnMsg |= (noteMap[noteName].noteNo & 0x7F) << 8;  // 音符号
+            noteOnMsg |= (nowVelocity & 0x7F) << 16; // 力度
+            midiOutShortMsg(hMidiOut, noteOnMsg);
+            if(isRecording){
+                musicFile << noteName << " " << tick << std::endl;
             }
+            return;
         }
     } else {
         std::string noteName = keyManager.getKeyNote(static_cast<int>(key)); // 获取音符名
@@ -123,6 +127,7 @@ void keyHandler(DWORD key, bool sign) {
     if (sign) {
         if (key == VK_ESCAPE) { // 按下ESC
             Logger::info("ESC被按下,将退出演奏模式");
+            isPlaying = false;
             PostQuitMessage(0);
         } else if (key == VK_LEFT) { // 按下左键
             voiceChange(false);
@@ -132,6 +137,8 @@ void keyHandler(DWORD key, bool sign) {
             velocityChange(true);
         } else if (key == VK_DOWN) {
             velocityChange(false);
+        } else if (key == VK_F1) {
+
         } else { // 处理其他按键
             nodeKeyHandler(key, true);
         }

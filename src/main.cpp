@@ -6,6 +6,8 @@
 #include "fstream"
 #include "filesystem"
 #include "Entities/NoteEntity.cpp"
+#include <vector>
+#include <thread>
 
 // 函数声明
 int commandSelect(); // 选择MIDI输出设备
@@ -25,13 +27,17 @@ void initCfgFile();// 初始化配置文件
 void initConsole();// 初始化控制台
 
 void initGui();// 初始化GUI
+
+void initMusic();// 初始化曲谱文件
+
+void commandRecord(const std::string & musicName);// 录制曲谱
 //全局变量
 int selectedMidiDev = 0; // 选择的MIDI输出设备
 std::string logFileName = "./logs/" + getCurrentDate() + ".log"; // 日志文件名
 KeyManager keyManager;// 键盘映射管理器
 std::map<std::string, NoteEntity> noteMap;// 音符表
 bool isCommandLineMode = true;// 是否为命令行模式
-
+std::map<std::string, std::vector<std::vector<std::string>>> musicMap;//曲谱表
 //主函数
 int main() {
     initCfgFile();// 初始化配置文件
@@ -40,6 +46,7 @@ int main() {
     } else {
         initLogFile(); // 初始化日志文件
         initNoteFile();// 初始化音符文件
+        initMusic();// 初始化曲谱文件
         initGui();// 初始化GUI
     }
 }
@@ -54,6 +61,7 @@ void initConsole() {
     SetConsoleOutputCP(CP_UTF8);// 设置控制台输出编码为UTF-8
     initLogFile(); // 初始化日志文件
     initNoteFile();// 初始化音符文件
+    initMusic();// 初始化曲谱文件
     Logger::info("欢迎使用MIDI电子琴,键入help以获取帮助");
     while (true) {
         //输入操作符
@@ -86,7 +94,12 @@ void initConsole() {
             system("pause >nul");
             FreeConsole();
             exit(0);
-
+        } else if (s == "record") {
+            Logger::info("请输入曲谱名");
+            std::string musicName;
+            std::cin >> musicName;
+            Logger::info("开始录制曲谱" + musicName + "若有重复曲谱将会覆盖!");
+            commandRecord(musicName);
         } else {
             Logger::warn("无效的指令 键入help以获取帮助");
         }
@@ -175,6 +188,50 @@ void initCfgFile() {
             }
         }
         cfgFile.close();
+    }
+}
+
+void initMusic() {
+    if (!std::filesystem::exists("./musics")) {
+        Logger::info("未找到曲谱文件夹,正在创建...");
+        std::filesystem::create_directory("./musics");
+    } else {
+        int musicNum = 0;
+        for (const auto &entry: std::filesystem::directory_iterator("./musics")) {
+            std::ifstream musicFile(entry.path()); // 获取文件输入流
+            std::string musicName; // 定义曲谱名变量
+            musicFile >> musicName; // 读取曲谱名
+            if (musicMap.find(musicName) != musicMap.end()) {
+                Logger::serious("曲谱文件" + musicName + "重复 按任意键退出程序");
+                system("pause >nul");
+                exit(1);
+            }
+            std::vector<std::vector<std::string>> music;
+            std::vector<std::string> currentRow;
+            std::string line;
+            while (std::getline(musicFile, line)) {
+                if (line.empty()) {
+                    // 遇到空行表示当前行的数据结束
+                    music.push_back(currentRow);
+                    currentRow.clear();
+                } else {
+                    // 否则将行数据添加到当前行
+                    currentRow.push_back(line);
+                }
+            }
+
+            if (musicFile.fail()) {
+                Logger::serious("曲谱格式错误 按任意键退出程序");
+                system("pause >nul");
+                exit(1);
+            } else {
+                musicMap.insert(std::pair<std::string, std::vector<std::vector<std::string>>>(musicName, music));
+                musicNum++;
+            }
+            musicFile.close();
+        }
+        Logger::info("MusicService初始化完成");
+        Logger::info("共读取了" + std::to_string(musicNum) + "个曲谱文件");
     }
 }
 

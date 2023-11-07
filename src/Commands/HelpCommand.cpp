@@ -10,5 +10,6 @@ void commandHelp() {
     Logger::info("map -> 显示当前键盘映射");
     Logger::info("start -> 开始MIDI演奏");
     Logger::info("exit -> 退出程序");
+    Logger::info("record -> 录制曲谱");
     Logger::info("---------------------------");
 }
