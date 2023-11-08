@@ -26,9 +26,13 @@ public:
         sendMessage(SERIOUS, s);
     }
 
+    static void debug(const std::string &s) {
+        sendMessage(DUBUG, s);
+    }
+
 private:
     enum logLevel {
-        INFO, WARN, SERIOUS
+        INFO, WARN, SERIOUS, DUBUG
     };
 
     static void sendMessage(logLevel l, const std::string &s) {
@@ -40,6 +44,8 @@ private:
             logLevelStr = "WARN";
         } else if (l == 2) {
             logLevelStr = "SERIOUS";
+        } else if (l == 3){
+            logLevelStr = "DUBUG";
         }
         if (isCommandLineMode) {
             std::cout << "[" + getCurrentDate() + " " << logLevelStr << "] :" << s << std::endl;

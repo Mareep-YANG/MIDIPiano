@@ -26,7 +26,7 @@ void initCfgFile();// 初始化配置文件
 
 void initConsole();// 初始化控制台
 
-void initGui();// 初始化GUI
+[[noreturn]] void initGui();// 初始化GUI
 
 void initMusic();// 初始化曲谱文件
 
@@ -40,6 +40,7 @@ KeyManager keyManager;// 键盘映射管理器
 std::map<std::string, NoteEntity> noteMap;// 音符表
 bool isCommandLineMode = true;// 是否为命令行模式
 std::map<std::string , MusicEntity> musicMap;// 曲谱表
+bool isPlaying = false; //是否正在演奏模式
 //主函数
 int main() {
     initCfgFile();// 初始化配置文件
@@ -103,6 +104,10 @@ void initConsole() {
             Logger::info("开始录制曲谱" + musicName + "若有重复曲谱将会覆盖!");
             commandRecord(musicName);
         }else if(s == "play"){
+            Logger::info("可用的曲谱:");
+            for(const auto &pair : musicMap){
+                Logger::info(pair.first);
+            }
             Logger::info("请输入曲谱名");
             std::string musicName;
             std::cin >> musicName;
@@ -209,9 +214,8 @@ void initMusic() {
             std::ifstream musicFile(entry.path()); // 获取文件输入流
             std::string musicName; // 定义曲谱名变量
             musicFile >> musicName; // 读取曲谱名
-            if (musicMap.find(musicName) != musicMap.end()) {
-                Logger::serious("曲谱文件" + musicName + "重复 按任意键退出程序");
-                system("pause >nul");
+            if (musicMap.find(musicName) != musicMap.end() ) {
+                Logger::serious("曲谱文件" + musicName + "重复");
                 exit(1);
             }
             std::vector<MusicNoteEntity> notes; // 定义音符列表

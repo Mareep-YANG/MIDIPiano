@@ -25,9 +25,11 @@ public:
 
     }
 
-    std::string getKeyNote(int key) {
+    std::string getKeyNote(int key,bool ifWarn = true) {
         if (keyMap.find(key) == keyMap.end()) {
-            Logger::warn("未找到" + std::to_string(MapVirtualKey(key, 0)) + "键的映射,请检查音符文件!");
+            if (ifWarn){
+                Logger::warn("未找到" + std::to_string(MapVirtualKey(key, 0)) + "键的映射,请检查音符文件!");
+            }
             return "";
         } else {
             return keyMap[key];

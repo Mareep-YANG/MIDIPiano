@@ -5,9 +5,18 @@
 #include <vector>
 #include "thread"
 #include "./KeyManager.cpp"
+
 //函数声明
 void commandStart(int);// 开始演奏
 void drawPianoKeys();
+
+void commandMusicPlay(const std::string &musicName);
+
+void commandRecord(const std::string &musicName);
+
+void keyAndMouseHandler();
+
+void drawPianoGUI();
 
 // 全局变量
 extern KeyManager keyManager;
@@ -24,9 +33,11 @@ char keyThree[]{'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\'
 int codeThree[]{81, 87, 69, 82, 84, 89, 85, 73, 79, 80, 219, 220};
 extern bool keyState[256];
 extern BYTE nowVelocity;
+extern bool isRecording;
+extern std::string playingMusicName;
+bool isStart = false;
 
-void initGui() {
-    bool isStart = false;
+[[noreturn]] void initGui() {
     initgraph(1000, 600);  // 初始化绘图环境
     // 绘制标题栏
     setfillcolor(RGB(0, 168, 225));
@@ -42,39 +53,25 @@ void initGui() {
     IMAGE img;
     loadimage(&img, _T("./resource/background.png"));
     putimage(0, 50, &img);
-    // 消息循环
+    keyAndMouseHandler();
+}
+
+void keyAndMouseHandler() {
     while (true) {
-        ExMessage msg{};
-        msg = getmessage(EX_KEY);
-        if (isStart) {
-            BeginBatchDraw(); // 开始批量绘图
-            // 绘制标题栏
-            setfillcolor(RGB(0, 168, 225));
-            solidrectangle(0, 0, 1000, 50);
-            settextcolor(RGB(255, 102, 0));
-            setbkmode(TRANSPARENT);
-            settextstyle(30, 0, _T("Tahoma"), 0, 0, 1000, false, false, false);
-            outtextxy(500 - textwidth("Key Board MIDIPiano") / 2, 10, _T("Key Board MIDIPiano"));
-            // 绘制状态栏
-            setfillcolor(RGB(128, 0, 128));
-            solidrectangle(0, 50, 1000, 100);
-            settextcolor(RGB(255, 255, 255));
-            setbkmode(TRANSPARENT);
-            outtextxy(10, 60, _T("Voice:"));
-            outtextxy(10 + textwidth("Voice:"), 60, midiSoundNamesEng[nowVoice].c_str());
-            outtextxy(10 + textwidth("Voice:") + textwidth(midiSoundNamesEng[nowVoice].c_str()) + 20, 60,
-                      _T("Velocity:"));
-            outtextxy(
-                    10 + textwidth("Voice:") + textwidth(midiSoundNamesEng[nowVoice].c_str()) + textwidth("Velocity:") +
-                    20,
-                    60, std::to_string(nowVelocity).c_str());
-            //绘制录制栏
-            setfillcolor(RGB(0,153,78));
-            solidrectangle(0,100,1000,150);
-            drawPianoKeys(); // 绘制琴键
-            EndBatchDraw();// 结束批量绘图
+        ExMessage msg = getmessage();
+        if (msg.message == WM_LBUTTONDOWN) {
+            if (msg.x <= 120 && msg.x >= 20 && msg.y <= 145 && msg.y >= 105) {
+                char musicName[256];
+                InputBox(musicName, 256, "Please input music name");
+                std::thread(commandRecord, musicName).detach();
+            }
+            if (msg.x <= 240 && msg.x >= 140 && msg.y <= 145 && msg.y >= 105) {
+                char musicName[256];
+                InputBox(musicName, 256, "Please input music name");
+                std::thread(commandMusicPlay, musicName).detach();
+            }
         }
-        if (msg.message == WM_KEYDOWN && msg.vkcode == VK_ESCAPE) {
+        if (msg.message == WM_KEYDOWN && msg.vkcode == VK_ESCAPE && !isRecording) {
             Logger::info("正在退出程序...");
             closegraph();
             playThread.join();
@@ -83,11 +80,11 @@ void initGui() {
         if (msg.message == WM_KEYDOWN && !isStart) {
             isStart = true;
             cleardevice();
+            std::thread guiThread(drawPianoGUI);
+            guiThread.detach();
             playThread = std::thread(commandStart, selectedMidiDev);
-            continue;
         }
     }
-
 }
 
 void drawPianoKeys() {
@@ -106,7 +103,7 @@ void drawPianoKeys() {
         setbkmode(TRANSPARENT);
         settextstyle(20, 0, _T("Tahoma"), 0, 0, 1000, false, false, false);
         outtextxy(i * keyWidth + 20, 470 + keyHeight - 30, keyOne[i - 4]);
-        outtextxy(i * keyWidth + 20, 470 + keyHeight - 80, keyManager.getKeyNote(codeOne[i - 4]).c_str());
+        outtextxy(i * keyWidth + 20, 470 + keyHeight - 80, keyManager.getKeyNote(codeOne[i - 4], false).c_str());
         setlinecolor(BLACK);
         line(i * keyWidth, 470, i * keyWidth, 470 + keyHeight);
     }
@@ -122,7 +119,7 @@ void drawPianoKeys() {
         }
         solidrectangle(i * keyWidth + 28, 335, (i + 1) * keyWidth + 28, 335 + keyHeight);
         outtextxy(28 + i * keyWidth + 20, 335 + keyHeight - 30, keyTwo[i - 3]);
-        outtextxy(28 + i * keyWidth + 20, 335 + keyHeight - 80, keyManager.getKeyNote(codeTwo[i - 3]).c_str());
+        outtextxy(28 + i * keyWidth + 20, 335 + keyHeight - 80, keyManager.getKeyNote(codeTwo[i - 3], false).c_str());
         line(i * keyWidth + 28, 335, i * keyWidth + 28, 335 + keyHeight);
     }
     setfillcolor(RED);
@@ -137,10 +134,59 @@ void drawPianoKeys() {
         }
         solidrectangle(i * keyWidth + 28 - 56, 200, (i + 1) * keyWidth + 28 - 56, 200 + keyHeight);
         outtextxy(i * keyWidth + 20 + 28 - 56, 200 + keyHeight - 30, keyThree[i - 3]);
-        outtextxy(i * keyWidth + 20 + 28 - 56, 200 + keyHeight - 80, keyManager.getKeyNote(codeThree[i - 3]).c_str());
+        outtextxy(i * keyWidth + 20 + 28 - 56, 200 + keyHeight - 80,
+                  keyManager.getKeyNote(codeThree[i - 3], false).c_str());
         line(i * keyWidth + 28 - 56, 200, i * keyWidth + 28 - 56, 200 + keyHeight);
     }
     setfillcolor(RED);
     solidrectangle(224 - 28 - 56, 200 - 5, 784 + 28 + 56, 200);
 
+}
+
+void drawPianoGUI() {
+    while (isStart) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        BeginBatchDraw(); // 开始批量绘图
+        // 绘制标题栏
+        setfillcolor(RGB(0, 168, 225));
+        solidrectangle(0, 0, 1000, 50);
+        settextcolor(RGB(255, 102, 0));
+        setbkmode(TRANSPARENT);
+        settextstyle(30, 0, _T("Tahoma"), 0, 0, 1000, false, false, false);
+        outtextxy(500 - textwidth("Key Board MIDIPiano") / 2, 10, _T("Key Board MIDIPiano"));
+        // 绘制状态栏
+        setfillcolor(RGB(128, 0, 128));
+        solidrectangle(0, 50, 1000, 100);
+        settextcolor(RGB(255, 255, 255));
+        setbkmode(TRANSPARENT);
+        outtextxy(10, 60, _T("Voice:"));
+        outtextxy(10 + textwidth("Voice:"), 60, midiSoundNamesEng[nowVoice].c_str());
+        int textLength = 10 + textwidth("Voice:") + textwidth(midiSoundNamesEng[nowVoice].c_str()) + 20;
+        outtextxy(textLength, 60, _T("Velocity:"));
+        outtextxy(textLength + textwidth("Velocity:"), 60, std::to_string(nowVelocity).c_str());
+        outtextxy(textLength + textwidth("Velocity:") + textwidth(std::to_string(nowVelocity).c_str()) + 20, 60,
+                  _T("Playing:"));
+        outtextxy(textLength + textwidth("Velocity:") + textwidth(std::to_string(nowVelocity).c_str()) + 20 +
+                  textwidth("Playing:"), 60, playingMusicName.c_str());
+        //绘制录制栏
+        setfillcolor(RGB(0, 153, 78));
+        solidrectangle(0, 100, 1000, 150);
+        //绘制录制按钮
+        setfillcolor(RGB(252, 211, 0));
+        solidrectangle(20, 105, 120, 145);
+        outtextxy(25, 110, "Record");
+        if (isRecording) {
+            setfillcolor(RGB(255, 0, 0));
+            solidcircle(135, 125, 10);
+        }
+        //绘制播放按钮
+        setfillcolor(RGB(252, 211, 0));
+        solidrectangle(150, 105, 240, 145);
+        outtextxy(175, 110, "Play");
+
+        drawPianoKeys(); // 绘制琴键
+        EndBatchDraw();// 结束批量绘图
+
+
+    }
 }
