@@ -18,6 +18,9 @@ void keyAndMouseHandler();
 
 void drawPianoGUI();
 
+void voiceChange(bool); // 音色改变
+void velocityChange(bool);// 音量改变
+
 // 全局变量
 extern KeyManager keyManager;
 extern int selectedMidiDev;
@@ -60,6 +63,18 @@ void keyAndMouseHandler() {
     while (true) {
         ExMessage msg = getmessage();
         if (msg.message == WM_LBUTTONDOWN) {
+            if (msg.x <= 390 && msg.x >= 275 && msg.y >= 105 && msg.y <= 145) {
+                velocityChange(true);
+            }
+            if (msg.x >= 420 && msg.y >= 105 && msg.x <= 540 && msg.y <= 145) {
+                velocityChange(false);
+            }
+            if (msg.x >= 570 && msg.y >= 105 && msg.x <=690 && msg.y <= 145){
+                voiceChange(true);
+            }
+            if(msg.x >= 720 && msg.y >= 105 && msg.x <= 840 && msg.y <= 145){
+                voiceChange(false);
+            }
             if (msg.x <= 120 && msg.x >= 20 && msg.y <= 145 && msg.y >= 105) {
                 char musicName[256];
                 InputBox(musicName, 256, "Please input music name");
@@ -70,6 +85,7 @@ void keyAndMouseHandler() {
                 InputBox(musicName, 256, "Please input music name");
                 std::thread(commandMusicPlay, musicName).detach();
             }
+
         }
         if (msg.message == WM_KEYDOWN && msg.vkcode == VK_ESCAPE && !isRecording) {
             Logger::info("正在退出程序...");
@@ -183,6 +199,18 @@ void drawPianoGUI() {
         setfillcolor(RGB(252, 211, 0));
         solidrectangle(150, 105, 240, 145);
         outtextxy(175, 110, "Play");
+        //绘制音量+按钮
+        solidrectangle(270, 105, 390, 145);
+        outtextxy(275, 110, "velocity+");
+        //绘制音量-按钮
+        solidrectangle(420, 105, 540, 145);
+        outtextxy(425, 110, "velocity-");
+        //绘制音色+按钮
+        solidrectangle(570, 105, 690, 145);
+        outtextxy(590, 110, "voice+");
+        //绘制音色-按钮
+        solidrectangle(720, 105, 840, 145);
+        outtextxy(740, 110, "voice-");
 
         drawPianoKeys(); // 绘制琴键
         EndBatchDraw();// 结束批量绘图
