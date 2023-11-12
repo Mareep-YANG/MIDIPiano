@@ -4,10 +4,11 @@ set(EasyX_DIR D:/EsayX)
 include_directories(${EasyX_DIR}/include)
 link_directories(${EasyX_DIR}/lib64)
 
-link_libraries(libEasyX.a libgdi32.a libole32.a)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_WIN32_EXECUTABLE ON)
 configure_file("resource/image/background.png" "${CMAKE_BINARY_DIR}/resource/background.png" COPYONLY)
+link_libraries(libEasyX.a libgdi32.a libole32.a)
 add_executable(MIDIPiano src/main.cpp
         src/Logger.cpp
         src/Entities/NoteEntity.cpp

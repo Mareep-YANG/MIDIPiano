@@ -1,6 +1,6 @@
-//
-// Created by ly on 2023/10/27.
-//
+/*
+ * 用于打印帮助信息
+ * */
 #include "../Logger.cpp"
 
 void commandHelp() {

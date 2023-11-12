@@ -1,6 +1,6 @@
-//
-// Created by ly on 2023/11/7.
-//
+/*
+ * 播放曲谱命令
+ * */
 #include <map>
 #include "string"
 #include "../Entities/MusicEntity.cpp"
@@ -17,7 +17,7 @@ std::chrono::steady_clock::time_point startPlay;
 std::string playingMusicName;
 //函数声明
 void commandStart(int);// 开始演奏
-void nodeKeyHandler(const std::string &, bool);
+void noteKeyHandler(const std::string &, bool);
 
 void keyHandler(DWORD key, bool sign);
 
@@ -47,7 +47,7 @@ void commandMusicPlay(const std::string &musicName) {
             std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(
                     via - startPlay);
             if (duration.count() >= musicMap[musicName].notes[nodeCount].time) {
-                nodeKeyHandler(musicMap[musicName].notes[nodeCount].shortName,
+                noteKeyHandler(musicMap[musicName].notes[nodeCount].shortName,
                                musicMap[musicName].notes[nodeCount].isDown);
                 nodeCount++;
             }

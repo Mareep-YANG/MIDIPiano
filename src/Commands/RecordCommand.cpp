@@ -3,7 +3,7 @@
 //
 /*
  * 思路 : 主线程执行RecordCommand , 进行tick计时 , 开一个线程执行startCommand , extern主线程的tick数来输入到文件中
- *
+ *  录制源文件
  *
  *
  * */

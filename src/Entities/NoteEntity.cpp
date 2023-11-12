@@ -26,7 +26,7 @@ public:
         this->key = 0;
     };
 
-    NoteEntity(const BYTE &noteNo, const std::string &shortName, const int &key) {
+    NoteEntity(const BYTE &noteNo, const std::string &shortName, int key) {
         this->noteNo = noteNo;
         this->shortName = shortName;
         this->key = key;
